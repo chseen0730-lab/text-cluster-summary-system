@@ -1,0 +1,1 @@
+import{s as r}from"./request-B-KNWXZw.js";function e(s){return r.put("/user/profile",s)}function o(s){return r.post("/user/password",{oldPassword:s.oldPassword,newPassword:s.newPassword})}function a(){return r.get("/user/stats")}function n(){return r.get("/user/dashboard")}function u(s={}){return r.get("/user/history",{params:s})}export{u as a,a as b,o as c,n as g,e as u};

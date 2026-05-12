@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>网络文本观点聚类与摘要辅助分析系统 V1.0 说明文档</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 28px 34px 48px;
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      color: #1f2937;
+      line-height: 1.7;
+      background: #fafafa;
+    }
+    .doc {
+      max-width: 980px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 28px 30px 34px;
+    }
+    h1 {
+      margin: 0 0 14px;
+      text-align: center;
+      font-size: 26px;
+      letter-spacing: 0.3px;
+    }
+    h2 {
+      margin: 26px 0 10px;
+      font-size: 20px;
+      border-left: 4px solid #2563eb;
+      padding-left: 10px;
+    }
+    h3 {
+      margin: 14px 0 8px;
+      font-size: 16px;
+    }
+    p { margin: 6px 0; }
+    ul { margin: 8px 0 10px; padding-left: 22px; }
+    li { margin: 4px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 14px;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid #d1d5db;
+      padding: 8px 10px;
+      vertical-align: top;
+      text-align: left;
+    }
+    th {
+      background: #f3f4f6;
+      font-weight: 600;
+    }
+    .muted { color: #4b5563; }
+    code {
+      background: #f3f4f6;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-family: Consolas, Menlo, monospace;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <article class="doc">
+    <h1>网络文本观点聚类与摘要辅助分析系统 V1.0 说明文档</h1>
+
+    <h2>一、软件概述</h2>
+    <h3>1. 开发目的</h3>
+    <p>本系统用于对网络文本进行集中管理、任务化观点聚类分析与摘要结果管理，形成从“文本录入”到“聚类处理”再到“摘要输出”的闭环处理流程。系统定位为业务处理与信息整理工具，不包含预测、预警、决策推理或知识图谱构建能力。</p>
+
+    <h3>2. 面向对象</h3>
+    <p>系统面向需要处理多条文本并输出聚类结果与摘要结果的业务人员、分析人员与维护人员。系统通过统一的 Web 前后端架构提供页面操作与接口访问。</p>
+
+    <h3>3. 主要功能</h3>
+    <p>本系统围绕“文本数据处理→聚类任务执行→摘要结果管理”提供完整业务功能。首先，在认证环节提供注册、登录、登出，并通过 Bearer Token 维护登录态与接口访问权限。其次，在文本管理环节支持文本新增、分页查询、按关键词检索、按分类筛选、单条编辑、单条删除、批量删除，页面端以列表+弹窗方式完成录入与维护，服务端按当前用户归属校验数据可见性与可操作性。再次，在聚类分析环节支持任务创建（name、description、textIds、clusterCount、algorithm）、任务列表查询、任务详情查看、任务执行与任务删除；任务执行后会写入 cluster_results，并将状态从 pending/running 更新到 completed，形成可追踪的任务处理记录。在摘要环节，系统支持按来源生成摘要（sourceType=text/cluster，sourceId），并提供摘要分页查询、单条详情、删除等管理能力；生成后的标题、内容、字数等信息可在摘要管理页面继续维护。系统还提供仪表盘与个人中心功能：仪表盘展示文本总数、聚类任务数、摘要数量、任务状态分布、文本分类分布、近7天趋势与最近操作；个人中心支持资料更新、密码修改、使用统计查看；操作历史模块支持按 type、keyword 检索与分页查询。上述功能均由已实现前端页面、后端接口与数据库字段直接支撑。</p>
+
+    <h3>4. 技术特点</h3>
+    <p>系统采用 Vue3+Vite 与 Flask 前后端分离架构，统一使用 Bearer Token 鉴权与 {code,message,data} 响应格式；数据默认持久化到 SQLite，并通过服务层完成文本、聚类、摘要与历史记录的业务解耦。</p>
+
+    <h2>二、软件运行环境</h2>
+    <h3>1. 前端环境</h3>
+    <table>
+      <tr><th>项目</th><th>说明</th></tr>
+      <tr><td>运行平台</td><td>现代浏览器（Chrome / Edge 等）</td></tr>
+      <tr><td>框架与工具</td><td>Vue 3、Vite、Vue Router（Hash 路由）、Pinia、Axios、ECharts、animate.css</td></tr>
+      <tr><td>主要目录</td><td><code>frontend/src/views</code>、<code>frontend/src/components</code>、<code>frontend/src/api</code></td></tr>
+      <tr><td>开发启动</td><td><code>npm run dev</code></td></tr>
+    </table>
+
+    <h3>2. 后端环境</h3>
+    <table>
+      <tr><th>项目</th><th>说明</th></tr>
+      <tr><td>运行平台</td><td>Python 3.10+</td></tr>
+      <tr><td>框架</td><td>Flask（核心库）</td></tr>
+      <tr><td>接口前缀</td><td><code>/api</code></td></tr>
+      <tr><td>后端启动</td><td><code>python app.py</code></td></tr>
+      <tr><td>默认监听</td><td><code>0.0.0.0:8000</code></td></tr>
+    </table>
+
+    <h3>3. 数据库环境</h3>
+    <table>
+      <tr><th>项目</th><th>说明</th></tr>
+      <tr><td>默认数据库</td><td>SQLite（<code>sqlite3</code>）</td></tr>
+      <tr><td>数据库文件</td><td>由 <code>backend/config/settings.py</code> 中 <code>DATABASE_PATH</code> 指定</td></tr>
+      <tr><td>结构定义</td><td><code>backend/database.py</code> 中建表脚本；<code>database/schema.sql</code> 提供 MySQL 对应结构</td></tr>
+    </table>
+
+    <h3>4. 运行方式</h3>
+    <p>前端与后端分别启动。开发模式下前端通过 Vite 代理将 <code>/api</code> 请求转发至后端服务地址，形成完整调用链路。</p>
+
+    <h2>三、系统总体说明</h2>
+    <h3>1. 系统结构</h3>
+    <p>系统由前端展示层、后端接口层、业务服务层、数据访问层与数据存储层构成：</p>
+    <ul>
+      <li>展示层：Vue 页面与通用组件，负责数据录入、列表展示、图表展示、弹窗交互。</li>
+      <li>接口层：Flask Blueprint，负责参数接收、权限验证、调用服务层并返回统一响应。</li>
+      <li>服务层：处理文本、聚类、摘要、用户、历史等业务规则。</li>
+      <li>数据层：<code>database.py</code> 提供连接、执行与查询封装。</li>
+      <li>存储层：SQLite 表（users、auth_tokens、texts、cluster_tasks、cluster_results、summaries、operation_history）。</li>
+    </ul>
+
+    <h3>2. 模块组成（对应真实路由）</h3>
+    <table>
+      <tr><th>模块</th><th>前端路由</th><th>后端接口前缀</th></tr>
+      <tr><td>认证模块</td><td><code>/login</code>、<code>/register</code></td><td><code>/api/auth</code></td></tr>
+      <tr><td>仪表盘</td><td><code>/home</code></td><td><code>/api/user/dashboard</code></td></tr>
+      <tr><td>文本管理</td><td><code>/text-upload</code></td><td><code>/api/texts</code></td></tr>
+      <tr><td>聚类分析</td><td><code>/cluster-analysis</code>、<code>/cluster-results/:id</code></td><td><code>/api/cluster</code></td></tr>
+      <tr><td>摘要生成</td><td><code>/summary-generation</code></td><td><code>/api/summary</code>（生成）</td></tr>
+      <tr><td>摘要管理</td><td><code>/summary-management</code></td><td><code>/api/summary</code>（列表、详情、删除）</td></tr>
+      <tr><td>个人中心</td><td><code>/profile</code></td><td><code>/api/user</code>（资料、密码、统计等）</td></tr>
+      <tr><td>操作历史</td><td><code>/history</code></td><td><code>/api/user</code>（历史记录查询）</td></tr>
+    </table>
+
+    <h3>3. 数据流转</h3>
+    <p>您登录成功后，系统会在当前浏览器会话中记住登录状态，之后打开各功能页时一般无需反复登录；业务数据始终按当前账号隔离。</p>
+    <p>文本管理模块负责录入与维护原文；聚类分析模块在选定文本后执行任务并产出簇结果。摘要生成模块仅在「摘要生成」页面完成一次生成动作；生成结果进入库后，由摘要管理模块在「摘要管理」页面独立承担检索、查看与删除。操作历史模块单独记录各类关键动作，供「操作历史」页面查询；个人中心模块的统计与图表仅展示在个人中心页，与历史列表互不混写。</p>
+
+    <h2>四、核心功能模块说明</h2>
+    <h3>1. 认证模块（登录、注册、登出）</h3>
+    <p><strong>模块作用：</strong>完成用户身份建立与会话有效性维护。</p>
+    <p><strong>页面组成：</strong>登录页（用户名、密码）、注册页（用户名、密码、昵称、邮箱）。</p>
+    <p><strong>主要操作流程：</strong>在注册页依次填入用户名、密码、昵称、邮箱等信息后，点击注册按钮；校验通过即完成账号创建，随后可返回登录页。在登录页填入用户名与密码，点击登录按钮；验证成功后系统会记住登录状态并自动进入系统首页（仪表盘）。已登录时点击登出，登录状态会被清除，页面回到登录入口。</p>
+    <p><strong>系统反馈：</strong>参数缺失或校验失败返回 400，认证失败返回 401，成功返回 200。</p>
+    <p><strong>相关数据项：</strong><code>user.id</code>、<code>username</code>、<code>nickname</code>、<code>email</code>、<code>role</code>、<code>createdAt</code>、<code>token</code>。</p>
+
+    <h3>2. 文本管理模块</h3>
+    <p><strong>模块作用：</strong>维护文本基础数据，为聚类与摘要提供源数据。</p>
+    <p><strong>页面组成：</strong>筛选区（keyword、category）、数据表、分页、新建/编辑弹窗、删除确认框、批量删除确认框。</p>
+    <p><strong>主要操作流程：</strong>进入文本管理页后，列表会自动加载当前账号下的文本。需要筛选时，在关键词或分类条件中填入或选择内容，再点击查询，即可得到匹配的列表与分页结果。要新增文本，点击新建按钮，在弹窗中填写标题、正文、分类等必填项后保存，成功后列表会出现新记录。修改某条时点击编辑，在弹窗中改好再保存即可更新。删除单条时点删除并在确认框中确认；需要批量清理时勾选多条后点批量删除，确认后即一并移除。</p>
+    <p><strong>系统反馈：</strong>创建成功返回新增记录；查询返回 <code>list/total/page/pageSize</code>；无权限或不存在返回 404。</p>
+    <p><strong>相关数据项：</strong><code>id</code>、<code>title</code>、<code>content</code>、<code>word_count</code>、<code>category</code>、<code>status</code>、<code>created_at</code>、<code>updated_at</code>（前端映射为驼峰字段）。</p>
+
+    <h3>3. 聚类分析模块</h3>
+    <p><strong>模块作用：</strong>管理聚类任务并生成任务结果。</p>
+    <p><strong>页面组成：</strong>任务筛选区（keyword、status）、任务卡片列表、新建任务弹窗、删除确认框、结果页图表区。</p>
+    <p><strong>主要操作流程：</strong>在聚类分析页可先按关键词或任务状态筛选，列表以任务卡片形式展示。点击新建任务，在弹窗中填写任务名称、说明，勾选要参与聚类的文本、设定簇数量与算法等，保存后即生成一条待执行任务。对该任务点击执行，系统会依次进入“排队/运行/完成”等状态；完成后可进入该任务的详情或结果页，查看各簇划分与图表展示。若不再需要某任务，点删除并在确认后移除即可。</p>
+    <p><strong>系统反馈：</strong>创建后初始状态为 <code>pending</code>；执行时更新为 <code>running</code> 后转为 <code>completed</code> 并写入 <code>cluster_results</code>；错误时返回明确 message。</p>
+    <p><strong>相关数据项：</strong><code>name</code>、<code>description</code>、<code>text_ids</code>、<code>cluster_count</code>、<code>algorithm</code>、<code>status</code>、<code>progress</code>、<code>completed_at</code>、<code>results</code>。</p>
+
+    <h3>4. 摘要生成模块</h3>
+    <p><strong>模块作用：</strong>在独立页面中，按用户选定的来源（单条文本或某聚类任务的某一簇）触发一次摘要生成，并将结果写入系统。</p>
+    <p><strong>页面组成：</strong>摘要标题输入、来源类型与具体来源选择（文本列表或任务与簇）、生成按钮、生成完成后的正文预览区。</p>
+    <p><strong>主要操作流程：</strong>打开「摘要生成」页面后，先为本次摘要填写标题；再选择来源——若选单条文本，则在列表中点选一条已保存的原文；若选聚类结果，则先选定聚类任务，再选定要参与摘要的具体簇。必填项齐全后点击生成按钮，等待处理结束；成功后当前页会展示本次生成的摘要正文预览。本页职责到「生成并预览」为止，不在此页维护历史列表。</p>
+    <p><strong>系统反馈：</strong>生成成功会返回一条摘要记录（含标题、正文、字数等）；若来源未选全、来源无效或无权访问，页面会提示相应错误信息。</p>
+    <p><strong>相关数据项：</strong>生成入参侧为 <code>sourceType</code>、<code>sourceId</code>、<code>title</code>；落库侧含 <code>source_type</code>、<code>source_id</code>、<code>title</code>、<code>content</code>、<code>word_count</code>、<code>created_at</code> 等。</p>
+
+    <h3>5. 摘要管理模块</h3>
+    <p><strong>模块作用：</strong>在独立页面中，对已入库的摘要做检索、查看与删除，不负责再次调用生成算法。</p>
+    <p><strong>页面组成：</strong>搜索框、摘要卡片列表、卡片内或展开区的详情展示、单条删除及确认交互。</p>
+    <p><strong>主要操作流程：</strong>打开「摘要管理」页面后，列表会加载当前账号下的历史摘要。需要定位某条时，在搜索框输入关键字并触发查询。点击某张卡片或展开操作，可阅读该条摘要的完整信息与来源说明。若某条不再需要，点击删除并在确认框中确认，确认后该条从列表移除。需要新生成摘要时，应前往摘要生成模块对应页面，不在本页发起生成。</p>
+    <p><strong>系统反馈：</strong>列表与分页查询成功返回多条摘要的列表数据；详情成功返回单条完整字段；删除成功返回成功提示，记录不存在或无权限时返回错误说明。</p>
+    <p><strong>相关数据项：</strong>列表与详情共用 <code>id</code>、<code>source_type</code>、<code>source_id</code>、<code>title</code>、<code>content</code>、<code>word_count</code>、<code>created_at</code> 等；列表接口另含分页字段 <code>list/total/page/pageSize</code>。</p>
+
+    <h3>6. 个人中心模块</h3>
+    <p><strong>模块作用：</strong>维护当前登录用户的昵称、邮箱等资料，修改登录密码，并在本页展示与个人相关的用量统计与图表。</p>
+    <p><strong>页面组成：</strong>个人资料展示与编辑区、密码修改表单、统计数字卡片、雷达图或活跃度等图表区域。</p>
+    <p><strong>主要操作流程：</strong>进入「个人中心」页面后，资料区展示当前昵称、邮箱等；修改后点击保存，校验通过即更新资料。修改密码时，在新密码与确认密码两处填写一致内容后提交，通过后即完成密码更换。页面中的统计卡片与图表在打开或刷新本页时加载，用于查看文本量、任务量、摘要量及活跃趋势等。本页不提供按条操作流水检索，该项由操作历史模块承担。</p>
+    <p><strong>系统反馈：</strong>资料读取与更新、统计类接口成功时返回结构化数据；旧密码或新密码校验失败时返回明确错误消息。</p>
+    <p><strong>相关数据项：</strong><code>nickname</code>、<code>email</code> 等资料字段；<code>textCount</code>、<code>clusterCount</code>、<code>summaryCount</code>、<code>usageDays</code>、<code>activityData</code>、<code>recentActivity</code> 等统计字段。</p>
+
+    <h3>7. 操作历史模块</h3>
+    <p><strong>模块作用：</strong>按条件分页查询系统自动记录的操作流水，便于审计与自查；不在此页修改密码或编辑个人资料。</p>
+    <p><strong>页面组成：</strong>操作类型筛选、关键字筛选、时间序列表格或列表、分页控件。</p>
+    <p><strong>主要操作流程：</strong>打开「操作历史」页面后，可按操作类型、关键字设置筛选条件，再点击查询或翻页，浏览符合条件的记录。本页仅查看与检索，不进行文本录入、聚类执行或摘要生成。若需看汇总图表，应前往个人中心或仪表盘对应页面。</p>
+    <p><strong>系统反馈：</strong>查询成功返回分页列表；筛选条件不合法或无数据时，列表为空或提示无匹配记录。</p>
+    <p><strong>相关数据项：</strong><code>history.list</code>（单条含类型、描述、时间等）、分页参数及筛选条件字段。</p>
+
+    <h2>五、关键处理流程说明</h2>
+    <h3>1. 认证与访问控制流程</h3>
+    <p>您完成登录后，再访问系统内各菜单时，系统会自动带上身份校验；若凭证失效或未登录，页面会提示并跳回登录页，避免误操作他人数据。</p>
+
+    <h3>2. 文本到聚类结果流程</h3>
+    <p>先在文本管理中把待分析内容准备好并保存成功，再到聚类分析里新建任务、勾选这些文本并填好簇数等参数。点击执行任务后，请稍候直至任务状态变为完成；此时打开该任务的结果页，即可看到系统为各条文本分配的簇与可视化结果。</p>
+
+    <h3>3. 摘要生成流程（摘要生成模块）</h3>
+    <p>在摘要生成页面完成：先填摘要标题，再选择来源——选“单条文本”时指定一条已保存原文，选“聚类任务”时指定任务与具体簇；最后点击生成并等待结束。成功后当前页展示本次生成结果预览，记录已写入系统。</p>
+
+    <h3>4. 摘要维护流程（摘要管理模块）</h3>
+    <p>在摘要管理页面完成：进入后浏览或按关键字搜索已生成的摘要；点开某条查看详情；若需清理，则对该条执行删除并确认。本流程不触发新的摘要生成，新生成须回到摘要生成页面操作。</p>
+
+    <h3>5. 仪表盘统计流程</h3>
+    <p>打开首页（仪表盘）时，页面会自动拉取与您账号相关的汇总数据：文本总量、聚类任务数量与状态分布、文本分类分布、近 7 天活跃趋势以及最近操作摘要等，并以数字卡片和图表形式呈现，便于一眼了解当前使用情况。</p>
+
+    <h3>6. 操作历史记录流程</h3>
+    <p>当您在系统中完成文本新增或编辑、创建/执行聚类任务、生成摘要等操作时，这些动作会被自动记一笔流水。之后进入操作历史页，通过类型或关键字筛选并翻页，即可按时间顺序回顾自己都做过哪些事。</p>
+
+    <h2>六、软件特点说明</h2>
+    <ul>
+      <li>实现范围明确：功能集中在文本管理、聚类任务处理、摘要生成与用户统计，模块边界清晰。</li>
+      <li>前后端字段映射一致：后端下划线字段通过接口层统一转换为前端使用字段，降低页面处理复杂度。</li>
+      <li>接口规范统一：统一响应结构、统一鉴权方式、统一分页参数，便于扩展与维护。</li>
+      <li>业务可追踪：关键操作写入历史表，可用于页面展示与近 7 天活跃数据统计。</li>
+      <li>部署要求低：默认依赖 Python 标准库数据库组件与 Flask 核心库，可快速部署与本地运行。</li>
+    </ul>
+
+    <p class="muted">文档依据当前项目源码（前端路由、页面组件、后端接口与服务实现）编写，内容范围与已实现能力一致。</p>
+  </article>
+</body>
+</html>

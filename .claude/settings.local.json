@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/cc/Desktop/网络文本观点聚类与摘要辅助分析系统 -type f -name *)",
+      "Bash(for dir:*)",
+      "Bash(do echo:*)",
+      "Read(//c/Users/cc/Desktop/网络文本观点聚类与摘要辅助分析系统/**)",
+      "Bash(done)",
+      "Bash(npx vite:*)",
+      "Bash(npm run:*)",
+      "Bash(node:*)"
+    ]
+  }
+}

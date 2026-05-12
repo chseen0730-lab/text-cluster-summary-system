@@ -1,0 +1,1 @@
+import{s as r}from"./request-B-KNWXZw.js";function u(e={}){return r.get("/summary",{params:e})}function s(e){return r.post("/summary/generate",{sourceType:e.sourceType||(e.clusterId!=null?"cluster":"text"),sourceId:e.clusterId!=null?e.clusterId:e.textId,title:e.title})}function m(e){return r.delete(`/summary/${e}`)}export{u as a,m as d,s as g};
